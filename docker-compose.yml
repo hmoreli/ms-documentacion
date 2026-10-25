@@ -1,0 +1,24 @@
+# Requiere la plataforma levantada (repo rrhh-plataforma) y rrhh-common
+# clonado al lado de este repo: ../rrhh-common
+services:
+  ms-documentacion:
+    build:
+      context: .
+      additional_contexts:
+        rrhh-common: ../rrhh-common
+    environment:
+      DATABASE_URL: postgresql+psycopg://ms_documentacion:${SERVICIOS_DB_PASSWORD:-servicio-dev}@postgres:5432/rrhh
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/rrhh
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/rrhh/protocol/openid-connect/certs
+      KEYCLOAK_AUDIENCE: rrhh-api
+      ROOT_PATH: /api/documentacion
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/salud')"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+    networks: [rrhh]
+
+networks:
+  rrhh:
+    external: true

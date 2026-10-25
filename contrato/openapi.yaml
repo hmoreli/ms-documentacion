@@ -1,0 +1,244 @@
+openapi: 3.0.0
+info:
+  title: API del Microservicio de Documentación Laboral
+  description: |
+    Especificación de la API para el Microservicio de Documentación Laboral,
+    enfocado en la gestión de documentos oficiales de los funcionarios.
+  version: 1.0.0
+
+servers:
+  - url: 'https://api.rrhh.com/documentacion/v1'
+
+tags:
+  - name: Documentos
+    description: Gestión de tipos de documentos.
+  - name: Documentos de Funcionarios
+    description: Gestión de documentos asociados a cada funcionario.
+
+paths:
+  /documentos:
+    get:
+      tags:
+        - Documentos
+      summary: Obtener la lista de documentos
+      responses:
+        '200':
+          description: Lista de documentos obtenida.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Documento'
+    post:
+      tags:
+        - Documentos
+      summary: Crear un nuevo documento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Documento'
+      responses:
+        '201':
+          description: Documento creado.
+
+  /documentos/{id}:
+    get:
+      tags:
+        - Documentos
+      summary: Obtener un documento por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Documento encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Documento'
+        '404':
+          description: Documento no encontrado.
+    patch:
+      tags:
+        - Documentos
+      summary: Actualizar un documento por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentoUpdate'
+      responses:
+        '200':
+          description: Documento actualizado.
+        '404':
+          description: Documento no encontrado.
+
+  /documentos-funcionarios:
+    get:
+      tags:
+        - Documentos de Funcionarios
+      summary: Obtener la lista de documentos de funcionarios
+      responses:
+        '200':
+          description: Lista de documentos de funcionarios obtenida.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentoFuncionario'
+    post:
+      tags:
+        - Documentos de Funcionarios
+      summary: Asociar un documento a un funcionario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentoFuncionario'
+      responses:
+        '201':
+          description: Documento de funcionario creado.
+
+  /documentos-funcionarios/{id}:
+    patch:
+      tags:
+        - Documentos de Funcionarios
+      summary: Actualizar un documento de funcionario por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentoFuncionarioUpdate'
+      responses:
+        '200':
+          description: Documento de funcionario actualizado.
+        '404':
+          description: Documento de funcionario no encontrado.
+
+  /documentos-funcionarios/search:
+    get:
+      tags:
+        - Documentos de Funcionarios
+      summary: Buscar documentos de funcionario por documento de identidad
+      parameters:
+        - name: documento_identidad
+          in: query
+          required: true
+          schema:
+            type: string
+          description: El número de documento de identidad del funcionario.
+      responses:
+        '200':
+          description: Lista de documentos del funcionario encontrada.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentoFuncionario'
+        '404':
+          description: No se encontraron documentos para el documento de identidad proporcionado.
+
+components:
+  schemas:
+    Documento:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        descripcion:
+          type: string
+        tipo:
+          type: string
+          enum:
+            - obligatoria
+            - opcional
+        tiempo_presentacion:
+          type: integer
+        tiene_vencimiento:
+          type: boolean
+      required:
+        - descripcion
+        - tipo
+        - tiene_vencimiento
+
+    DocumentoUpdate:
+      type: object
+      properties:
+        descripcion:
+          type: string
+        tipo:
+          type: string
+          enum:
+            - obligatoria
+            - opcional
+        tiempo_presentacion:
+          type: integer
+        tiene_vencimiento:
+          type: boolean
+      # all fields are optional for a PATCH request
+
+    DocumentoFuncionario:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        funcionario_id:
+          type: integer
+        documento_id:
+          type: integer
+        documento_identidad: # Agregado para el endpoint de búsqueda
+          type: string
+        fecha_vencimiento:
+          type: string
+          format: date
+        archivo:
+          type: string
+          format: byte
+        presentado:
+          type: boolean
+      required:
+        - funcionario_id
+        - documento_id
+        - presentado
+        - documento_identidad # Agregado a los campos requeridos
+
+    DocumentoFuncionarioUpdate:
+      type: object
+      properties:
+        funcionario_id:
+          type: integer
+        documento_id:
+          type: integer
+        fecha_vencimiento:
+          type: string
+          format: date
+        archivo:
+          type: string
+          format: byte
+        presentado:
+          type: boolean
