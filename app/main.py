@@ -3,7 +3,12 @@
 import os
 
 from fastapi import FastAPI
-from rrhh_common import ConfigAuth, VerificadorToken, registrar_manejadores_errores
+from rrhh_common import (
+    ConfigAuth,
+    ValidadorReferencias,
+    VerificadorToken,
+    registrar_manejadores_errores,
+)
 
 from app.rutas import routers
 
@@ -16,6 +21,8 @@ def crear_app(verificador: VerificadorToken | None = None) -> FastAPI:
         root_path=os.environ.get("ROOT_PATH", ""),
     )
     app.state.verificador = verificador or VerificadorToken(ConfigAuth.desde_entorno())
+    # Verifica con los otros servicios los ids que no son de este (ver app/referencias.py).
+    app.state.referencias = ValidadorReferencias.desde_entorno()
     registrar_manejadores_errores(app)
     for router in routers:
         app.include_router(router)

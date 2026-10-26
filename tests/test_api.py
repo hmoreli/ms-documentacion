@@ -1,5 +1,5 @@
 from app import almacen
-from tests.conftest import CONSULTA, OPERADOR
+from tests.conftest import CONSULTA, OPERADOR, validador_simulado
 
 PDF = b"%PDF-1.4 contenido de prueba"
 
@@ -156,3 +156,15 @@ def test_rutas_del_contrato(cliente):
     assert set(rutas["/documentos-funcionarios"]) == {"get", "post"}
     assert set(rutas["/documentos-funcionarios/{id}"]) == {"get", "patch", "delete"}
     assert set(rutas["/documentos-funcionarios/{id}/archivo"]) == {"get", "put", "delete"}
+
+
+def test_valida_funcionario(cliente):
+    cliente.app.state.referencias = validador_simulado("ms-funcionarios/funcionarios/5")
+    documento_de(cliente, funcionario_id=5)
+    doc = cliente.get("/documentos", headers=CONSULTA).json()[0]
+    r = cliente.post(
+        "/documentos-funcionarios",
+        json={"funcionario_id": 6, "documento_id": doc["id"]},
+        headers=OPERADOR,
+    )
+    assert r.status_code == 422

@@ -13,6 +13,7 @@ Implementa el contrato [`contrato/openapi.yaml`](contrato/openapi.yaml) con Fast
 - Los documentos de un funcionario se listan con `/documentos-funcionarios?funcionario_id=` (reemplaza a `/search?documento_identidad=`; el documento de identidad está en ms-funcionarios).
 - Búsqueda por texto con `?q=` en los tipos de documento.
 - **Respaldo:** el volumen `archivos` se respalda junto con la base.
+- Los ids de otros servicios (funcionario) se verifican con el servicio dueño antes de guardar: 422 si no existe, 503 si no responde. Usa el client `ms-documentacion` de Keycloak (`SERVICIO_CLIENT_ID`/`SERVICIO_CLIENT_SECRET`); sin esas variables, como en las pruebas, no se verifica.
 
 ## Desarrollo
 

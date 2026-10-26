@@ -10,6 +10,7 @@ from app import almacen
 from app import esquemas as e
 from app import modelos as m
 from app.db import obtener_sesion
+from app.referencias import FUNCIONARIO
 
 leer = requiere_roles(*ROLES_LECTURA)
 escribir = requiere_roles(*ROLES_ESCRITURA)
@@ -24,6 +25,7 @@ documentos_funcionarios = router_crud(
     nombre="Documento de funcionario",
     sesion=obtener_sesion,
     filtros={"funcionario_id": int, "documento_id": int, "presentado": bool},
+    referencias=[FUNCIONARIO],
     # DELETE también borra el archivo del volumen (abajo).
     metodos={"listar", "crear", "obtener", "actualizar"},
 )
