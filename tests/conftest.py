@@ -36,7 +36,8 @@ CONSULTA = encabezado("consulta")
 
 
 @pytest.fixture
-def cliente() -> Iterator[TestClient]:
+def cliente(tmp_path, monkeypatch) -> Iterator[TestClient]:
+    monkeypatch.setenv("ARCHIVOS_DIR", str(tmp_path / "archivos"))
     motor = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )

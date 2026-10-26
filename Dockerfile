@@ -11,7 +11,8 @@ RUN pip install --no-cache-dir .
 COPY alembic.ini ./
 COPY alembic ./alembic
 
-RUN useradd --system servicio
+RUN useradd --system servicio \
+    && mkdir -p /datos/archivos && chown servicio /datos/archivos
 USER servicio
 EXPOSE 8000
 CMD ["sh", "-c", "alembic upgrade head && exec uvicorn --factory app.main:crear_app --host 0.0.0.0 --port 8000"]

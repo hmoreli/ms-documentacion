@@ -6,9 +6,13 @@ Implementa el contrato [`contrato/openapi.yaml`](contrato/openapi.yaml) con Fast
 
 ## Respecto al contrato
 
-- Respeta el contrato: `archivo` viaja en base64 dentro del JSON y se guarda en la base. Para archivos grandes conviene pasar a `multipart/form-data` y guardarlos en un volumen (pendiente de decidir).
-- `GET /documentos-funcionarios/search?documento_identidad=` responde 404 si no hay resultados, como dice el contrato.
-- Como en el contrato, no hay DELETE ni GET por id en documentos de funcionarios.
+- Los archivos (PDF, JPG o PNG, hasta 20 MB) se guardan en el volumen `archivos` montado en `ARCHIVOS_DIR` (por defecto `/datos/archivos`), no en la base. La base guarda nombre, tipo, tamaño y SHA-256.
+  - `PUT /documentos-funcionarios/{id}/archivo` (multipart, campo `archivo`) sube o reemplaza el archivo y marca el documento como presentado.
+  - `GET /documentos-funcionarios/{id}/archivo` lo descarga; `DELETE` lo quita.
+  - Borrar un documento de funcionario también borra su archivo.
+- Los documentos de un funcionario se listan con `/documentos-funcionarios?funcionario_id=` (reemplaza a `/search?documento_identidad=`; el documento de identidad está en ms-funcionarios).
+- Búsqueda por texto con `?q=` en los tipos de documento.
+- **Respaldo:** el volumen `archivos` se respalda junto con la base.
 
 ## Desarrollo
 

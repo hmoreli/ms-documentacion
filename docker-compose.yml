@@ -12,12 +12,19 @@ services:
       KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/rrhh/protocol/openid-connect/certs
       KEYCLOAK_AUDIENCE: rrhh-api
       ROOT_PATH: /api/documentacion
+      ARCHIVOS_DIR: /datos/archivos
+    volumes:
+      # Archivos de los legajos (PDF, JPG, PNG). Respaldarlo junto con la base.
+      - archivos:/datos/archivos
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/salud')"]
       interval: 10s
       retries: 5
     restart: unless-stopped
     networks: [rrhh]
+
+volumes:
+  archivos:
 
 networks:
   rrhh:

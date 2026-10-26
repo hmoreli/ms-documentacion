@@ -1,37 +1,19 @@
-"""Esquemas del contrato contrato/openapi.yaml.
+"""Esquemas de la API (contrato en contrato/openapi.yaml, generado desde el código).
 
-`archivo` viaja en base64 dentro del JSON, como dice el contrato.
+Cambios respecto al contrato original (aprobados con la revisión de contratos vs BD):
+- El archivo ya no viaja en base64 dentro del JSON: se sube y se descarga aparte
+  (multipart) en /documentos-funcionarios/{id}/archivo y se guarda en un volumen.
+- Se quita `documento_identidad` (duplicaba la cédula de ms-funcionarios): los
+  documentos de una persona se buscan con ?funcionario_id=.
 """
 
-import base64
-import binascii
-from datetime import date
-from typing import Annotated, Any
+from datetime import date, datetime
+from typing import Annotated
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, PlainSerializer, WithJsonSchema
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.modelos import TipoDocumento
 
-
-def _desde_base64(valor: Any) -> Any:
-    if isinstance(valor, str):
-        try:
-            return base64.b64decode(valor, validate=True)
-        except binascii.Error as exc:
-            raise ValueError("archivo debe venir codificado en base64") from exc
-    return valor
-
-
-# Se decodifica al validar: model_dump() entrega los bytes reales para guardar.
-ArchivoEntrada = Annotated[
-    bytes,
-    BeforeValidator(_desde_base64),
-    WithJsonSchema({"type": "string", "format": "byte"}),
-]
-ArchivoSalida = Annotated[
-    bytes | None,
-    PlainSerializer(lambda b: base64.b64encode(b).decode() if b else None, return_type=str | None),
-]
 Descripcion = Annotated[str, Field(min_length=1, max_length=100)]
 
 
@@ -57,18 +39,23 @@ class DocumentoSalida(Documento):
 class DocumentoFuncionario(BaseModel):
     funcionario_id: int
     documento_id: int
-    documento_identidad: Annotated[str, Field(min_length=1, max_length=50)]
     fecha_vencimiento: date | None = None
-    archivo: ArchivoEntrada | None = None
-    presentado: bool
+    presentado: bool = False
 
 
 class DocumentoFuncionarioUpdate(BaseModel):
-    funcionario_id: int | None = None
     documento_id: int | None = None
     fecha_vencimiento: date | None = None
-    archivo: ArchivoEntrada | None = None
     presentado: bool | None = None
+
+
+class Archivo(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    nombre: str
+    tipo: str
+    tamano: int = Field(description="Bytes")
+    sha256: str
+    subido_en: datetime
 
 
 class DocumentoFuncionarioSalida(BaseModel):
@@ -76,7 +63,8 @@ class DocumentoFuncionarioSalida(BaseModel):
     id: int
     funcionario_id: int
     documento_id: int
-    documento_identidad: str
     fecha_vencimiento: date | None
-    archivo: ArchivoSalida
     presentado: bool
+    archivo: Archivo | None = Field(
+        None, description="Datos del archivo; el contenido se baja de .../{id}/archivo"
+    )

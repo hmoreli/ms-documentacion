@@ -1,5 +1,4 @@
-import base64
-
+from app import almacen
 from tests.conftest import CONSULTA, OPERADOR
 
 PDF = b"%PDF-1.4 contenido de prueba"
@@ -19,75 +18,126 @@ def tipo_cedula(cliente):
     )
 
 
-def test_archivo_en_base64_ida_y_vuelta(cliente):
+def documento_de(cliente, funcionario_id=5):
     doc = tipo_cedula(cliente)
-    df = crear(
+    return crear(
         cliente,
         "/documentos-funcionarios",
-        {
-            "funcionario_id": 5,
-            "documento_id": doc["id"],
-            "documento_identidad": "4567890",
-            "fecha_vencimiento": "2030-01-01",
-            "presentado": True,
-            "archivo": base64.b64encode(PDF).decode(),
-        },
+        {"funcionario_id": funcionario_id, "documento_id": doc["id"]},
     )
-    assert base64.b64decode(df["archivo"]) == PDF
 
 
-def test_archivo_que_no_es_base64(cliente):
-    doc = tipo_cedula(cliente)
-    r = cliente.post(
-        "/documentos-funcionarios",
-        json={
-            "funcionario_id": 5,
-            "documento_id": doc["id"],
-            "documento_identidad": "1",
-            "presentado": False,
-            "archivo": "esto no es base64!",
-        },
+def subir(cliente, id_, contenido=PDF, tipo="application/pdf", nombre="cedula.pdf"):
+    return cliente.put(
+        f"/documentos-funcionarios/{id_}/archivo",
+        files={"archivo": (nombre, contenido, tipo)},
         headers=OPERADOR,
     )
-    assert r.status_code == 422
 
 
-def test_busqueda_por_documento_identidad(cliente):
-    doc = tipo_cedula(cliente)
-    for cedula in ("111", "111", "222"):
-        crear(
-            cliente,
-            "/documentos-funcionarios",
-            {
-                "funcionario_id": 5,
-                "documento_id": doc["id"],
-                "documento_identidad": cedula,
-                "presentado": False,
-            },
-        )
-    r = cliente.get("/documentos-funcionarios/search?documento_identidad=111", headers=CONSULTA)
-    assert len(r.json()) == 2
-    r = cliente.get("/documentos-funcionarios/search?documento_identidad=999", headers=CONSULTA)
+def test_alta_sin_archivo(cliente):
+    df = documento_de(cliente)
+    assert df["presentado"] is False
+    assert df["archivo"] is None
+
+
+def test_subir_y_bajar_archivo(cliente):
+    df = documento_de(cliente)
+    r = subir(cliente, df["id"])
+    assert r.status_code == 200, r.text
+    datos = r.json()
+    assert datos["presentado"] is True
+    assert datos["archivo"]["nombre"] == "cedula.pdf"
+    assert datos["archivo"]["tipo"] == "application/pdf"
+    assert datos["archivo"]["tamano"] == len(PDF)
+
+    r = cliente.get(f"/documentos-funcionarios/{df['id']}/archivo", headers=CONSULTA)
+    assert r.status_code == 200
+    assert r.content == PDF
+    assert r.headers["content-type"] == "application/pdf"
+
+
+def test_reemplazar_archivo_borra_el_anterior(cliente):
+    df = documento_de(cliente)
+    subir(cliente, df["id"])
+    archivos = list(almacen.directorio().rglob("*"))
+    subir(cliente, df["id"], b"\x89PNG foto", "image/png", "cedula.png")
+    nuevos = [a for a in almacen.directorio().rglob("*") if a.is_file()]
+    assert len(nuevos) == 1
+    assert nuevos[0] not in archivos
+
+
+def test_tipo_de_archivo_no_permitido(cliente):
+    df = documento_de(cliente)
+    r = subir(cliente, df["id"], b"hola", "text/plain", "nota.txt")
+    assert r.status_code == 415
+
+
+def test_archivo_vacio(cliente):
+    df = documento_de(cliente)
+    assert subir(cliente, df["id"], b"").status_code == 422
+
+
+def test_archivo_demasiado_grande(cliente, monkeypatch):
+    monkeypatch.setattr(almacen, "TAMANO_MAXIMO", 10)
+    df = documento_de(cliente)
+    assert subir(cliente, df["id"], b"x" * 11).status_code == 413
+
+
+def test_quitar_archivo(cliente):
+    df = documento_de(cliente)
+    subir(cliente, df["id"])
+    r = cliente.delete(f"/documentos-funcionarios/{df['id']}/archivo", headers=OPERADOR)
+    assert r.json()["archivo"] is None
+    assert r.json()["presentado"] is False
+    assert not [a for a in almacen.directorio().rglob("*") if a.is_file()]
+    r = cliente.get(f"/documentos-funcionarios/{df['id']}/archivo", headers=CONSULTA)
     assert r.status_code == 404
 
 
-def test_marcar_como_presentado(cliente):
+def test_eliminar_documento_borra_el_archivo(cliente):
+    df = documento_de(cliente)
+    subir(cliente, df["id"])
+    r = cliente.delete(f"/documentos-funcionarios/{df['id']}", headers=OPERADOR)
+    assert r.status_code == 204
+    assert not [a for a in almacen.directorio().rglob("*") if a.is_file()]
+
+
+def test_consulta_no_puede_subir(cliente):
+    df = documento_de(cliente)
+    r = cliente.put(
+        f"/documentos-funcionarios/{df['id']}/archivo",
+        files={"archivo": ("c.pdf", PDF, "application/pdf")},
+        headers=CONSULTA,
+    )
+    assert r.status_code == 403
+
+
+def test_listar_por_funcionario(cliente):
     doc = tipo_cedula(cliente)
-    df = crear(
+    for funcionario_id in (5, 5, 6):
+        crear(
+            cliente,
+            "/documentos-funcionarios",
+            {"funcionario_id": funcionario_id, "documento_id": doc["id"]},
+        )
+    r = cliente.get("/documentos-funcionarios?funcionario_id=5", headers=CONSULTA)
+    assert len(r.json()) == 2
+
+
+def test_busqueda_de_documentos(cliente):
+    tipo_cedula(cliente)
+    crear(
         cliente,
-        "/documentos-funcionarios",
+        "/documentos",
         {
-            "funcionario_id": 5,
-            "documento_id": doc["id"],
-            "documento_identidad": "1",
-            "presentado": False,
+            "descripcion": "Certificado de antecedentes",
+            "tipo": "opcional",
+            "tiene_vencimiento": False,
         },
     )
-    r = cliente.patch(
-        f"/documentos-funcionarios/{df['id']}", json={"presentado": True}, headers=OPERADOR
-    )
-    assert r.json()["presentado"] is True
-    assert r.json()["documento_identidad"] == "1"
+    r = cliente.get("/documentos?q=ANTECEDENTES", headers=CONSULTA)
+    assert [d["descripcion"] for d in r.json()] == ["Certificado de antecedentes"]
 
 
 def test_tipo_de_documento_invalido(cliente):
@@ -104,5 +154,5 @@ def test_rutas_del_contrato(cliente):
     assert set(rutas["/documentos"]) == {"get", "post"}
     assert set(rutas["/documentos/{id}"]) == {"get", "patch"}
     assert set(rutas["/documentos-funcionarios"]) == {"get", "post"}
-    assert set(rutas["/documentos-funcionarios/{id}"]) == {"patch"}
-    assert set(rutas["/documentos-funcionarios/search"]) == {"get"}
+    assert set(rutas["/documentos-funcionarios/{id}"]) == {"get", "patch", "delete"}
+    assert set(rutas["/documentos-funcionarios/{id}/archivo"]) == {"get", "put", "delete"}
