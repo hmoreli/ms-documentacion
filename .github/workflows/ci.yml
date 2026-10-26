@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # rrhh-common es privado: el secreto RRHH_COMMON_TOKEN es un token de solo lectura
+      # (fine-grained, Contents: read) sobre hmoreli/rrhh-common.
+      - uses: actions/checkout@v4
+        with:
+          repository: hmoreli/rrhh-common
+          token: ${{ secrets.RRHH_COMMON_TOKEN }}
+          path: rrhh-common
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "./rrhh-common[db]" -e ".[dev]"
+      - run: ruff check app tests
+      - run: ruff format --check app tests
+      - run: pytest

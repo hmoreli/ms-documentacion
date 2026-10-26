@@ -1,0 +1,668 @@
+# Generado desde el código (app.openapi()). No editar a mano.
+openapi: 3.1.0
+info:
+  title: Microservicio de Documentación Laboral
+  version: 1.0.0
+paths:
+  /documentos:
+    get:
+      tags:
+      - Documentos
+      summary: Listar documentos
+      operationId: listar_documentos_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          description: Cantidad de registros
+          default: 50
+          title: Limit
+        description: Cantidad de registros
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Registros a saltear
+          default: 0
+          title: Offset
+        description: Registros a saltear
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+          description: 'Buscar texto (sin distinguir mayúsculas) en: descripcion'
+          title: Q
+        description: 'Buscar texto (sin distinguir mayúsculas) en: descripcion'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentoSalida'
+                title: Response Listar Documentos Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Documentos
+      summary: Crear documento
+      operationId: crear__documentos_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Documento'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /documentos/{id}:
+    get:
+      tags:
+      - Documentos
+      summary: Obtener documento por ID
+      operationId: obtener_documentos__id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Documentos
+      summary: Actualizar documento
+      operationId: actualizar_documentos__id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentoUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /documentos-funcionarios:
+    get:
+      tags:
+      - Documentos de Funcionarios
+      summary: Listar documentos-funcionarios
+      operationId: listar_documentos_funcionarios_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          description: Cantidad de registros
+          default: 50
+          title: Limit
+        description: Cantidad de registros
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Registros a saltear
+          default: 0
+          title: Offset
+        description: Registros a saltear
+      - name: funcionario_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          description: Filtrar por funcionario_id
+          title: Funcionario Id
+        description: Filtrar por funcionario_id
+      - name: documento_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          description: Filtrar por documento_id
+          title: Documento Id
+        description: Filtrar por documento_id
+      - name: presentado
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          description: Filtrar por presentado
+          title: Presentado
+        description: Filtrar por presentado
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentoFuncionarioSalida'
+                title: Response Listar Documentos Funcionarios Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Documentos de Funcionarios
+      summary: Crear documento de funcionario
+      operationId: crear__documentos_funcionarios_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentoFuncionario'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoFuncionarioSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /documentos-funcionarios/{id}:
+    get:
+      tags:
+      - Documentos de Funcionarios
+      summary: Obtener documento de funcionario por ID
+      operationId: obtener_documentos_funcionarios__id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoFuncionarioSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Documentos de Funcionarios
+      summary: Actualizar documento de funcionario
+      operationId: actualizar_documentos_funcionarios__id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentoFuncionarioUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoFuncionarioSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Documentos de Funcionarios
+      summary: Eliminar documento de funcionario (y su archivo)
+      operationId: eliminar_documentos_funcionarios__id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /documentos-funcionarios/{id}/archivo:
+    put:
+      tags:
+      - Documentos de Funcionarios
+      summary: Subir (o reemplazar) el archivo del documento
+      description: PDF, JPG o PNG de hasta 20 MB. Marca el documento como presentado.
+      operationId: subir_archivo_documentos_funcionarios__id__archivo_put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_subir_archivo_documentos_funcionarios__id__archivo_put'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoFuncionarioSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - Documentos de Funcionarios
+      summary: Descargar el archivo del documento
+      operationId: bajar_archivo_documentos_funcionarios__id__archivo_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/pdf: {}
+            image/jpeg: {}
+            image/png: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Documentos de Funcionarios
+      summary: Quitar el archivo del documento
+      operationId: quitar_archivo_documentos_funcionarios__id__archivo_delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoFuncionarioSalida'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    Archivo:
+      properties:
+        nombre:
+          type: string
+          title: Nombre
+        tipo:
+          type: string
+          title: Tipo
+        tamano:
+          type: integer
+          title: Tamano
+          description: Bytes
+        sha256:
+          type: string
+          title: Sha256
+        subido_en:
+          type: string
+          format: date-time
+          title: Subido En
+      type: object
+      required:
+      - nombre
+      - tipo
+      - tamano
+      - sha256
+      - subido_en
+      title: Archivo
+    Body_subir_archivo_documentos_funcionarios__id__archivo_put:
+      properties:
+        archivo:
+          type: string
+          contentMediaType: application/octet-stream
+          title: Archivo
+      type: object
+      required:
+      - archivo
+      title: Body_subir_archivo_documentos_funcionarios__id__archivo_put
+    Documento:
+      properties:
+        descripcion:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Descripcion
+        tipo:
+          $ref: '#/components/schemas/TipoDocumento'
+        tiempo_presentacion:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Tiempo Presentacion
+          description: Días para presentarlo
+        tiene_vencimiento:
+          type: boolean
+          title: Tiene Vencimiento
+      type: object
+      required:
+      - descripcion
+      - tipo
+      - tiene_vencimiento
+      title: Documento
+    DocumentoFuncionario:
+      properties:
+        funcionario_id:
+          type: integer
+          title: Funcionario Id
+        documento_id:
+          type: integer
+          title: Documento Id
+        fecha_vencimiento:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Fecha Vencimiento
+        presentado:
+          type: boolean
+          title: Presentado
+          default: false
+      type: object
+      required:
+      - funcionario_id
+      - documento_id
+      title: DocumentoFuncionario
+    DocumentoFuncionarioSalida:
+      properties:
+        id:
+          type: integer
+          title: Id
+        funcionario_id:
+          type: integer
+          title: Funcionario Id
+        documento_id:
+          type: integer
+          title: Documento Id
+        fecha_vencimiento:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Fecha Vencimiento
+        presentado:
+          type: boolean
+          title: Presentado
+        archivo:
+          anyOf:
+          - $ref: '#/components/schemas/Archivo'
+          - type: 'null'
+          description: Datos del archivo; el contenido se baja de .../{id}/archivo
+      type: object
+      required:
+      - id
+      - funcionario_id
+      - documento_id
+      - fecha_vencimiento
+      - presentado
+      title: DocumentoFuncionarioSalida
+    DocumentoFuncionarioUpdate:
+      properties:
+        documento_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Documento Id
+        fecha_vencimiento:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Fecha Vencimiento
+        presentado:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Presentado
+      type: object
+      title: DocumentoFuncionarioUpdate
+    DocumentoSalida:
+      properties:
+        descripcion:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Descripcion
+        tipo:
+          $ref: '#/components/schemas/TipoDocumento'
+        tiempo_presentacion:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Tiempo Presentacion
+          description: Días para presentarlo
+        tiene_vencimiento:
+          type: boolean
+          title: Tiene Vencimiento
+        id:
+          type: integer
+          title: Id
+      type: object
+      required:
+      - descripcion
+      - tipo
+      - tiene_vencimiento
+      - id
+      title: DocumentoSalida
+    DocumentoUpdate:
+      properties:
+        descripcion:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 1
+          - type: 'null'
+          title: Descripcion
+        tipo:
+          anyOf:
+          - $ref: '#/components/schemas/TipoDocumento'
+          - type: 'null'
+        tiempo_presentacion:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Tiempo Presentacion
+        tiene_vencimiento:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Tiene Vencimiento
+      type: object
+      title: DocumentoUpdate
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    TipoDocumento:
+      type: string
+      enum:
+      - obligatoria
+      - opcional
+      title: TipoDocumento
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
+servers:
+- url: /api/documentacion
+  description: Detrás de Kong
